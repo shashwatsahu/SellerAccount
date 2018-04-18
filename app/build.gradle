@@ -28,8 +28,6 @@ dependencies {
     implementation 'com.android.support:support-v4:26.0.0-alpha1'
     implementation 'com.android.support:design:26.0.0-alpha1'
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
-
-
     implementation 'com.google.firebase:firebase-config:11.8.0'
     implementation 'com.google.firebase:firebase-auth:11.8.0'
     implementation 'com.firebaseui:firebase-ui-auth:3.2.1'
@@ -41,8 +39,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
     compile 'com.facebook.shimmer:shimmer:0.1.0@aar'
+    implementation 'com.google.android.gms:play-services:11.8.0'
 }
-
-
 
 apply plugin: 'com.google.gms.google-services'

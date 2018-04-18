@@ -8,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,6 +18,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -37,6 +39,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
@@ -60,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static android.Manifest.permission.READ_CONTACTS;
 import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
@@ -69,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 123;
 
-
+    private static final int REQUEST_READ_CONTACTS = 0;
     private static final int LIST_PENDING_ID = 100;
     private static final String LIST_NOTIFICATION_ID = "reminder_notification_channel";
     private static final int LIST_NOTIFICATION_CHANNEL_ID = 101;
@@ -90,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
     public FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
+    private List<AuthUI.IdpConfig> providers;
+
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mDatabaseReference;
@@ -99,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView userProfile;
 
     private SQLiteDatabase sqLiteDatabase;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,18 +119,19 @@ public class MainActivity extends AppCompatActivity {
                 (ShimmerFrameLayout) findViewById(R.id.shimmer_view_container);
         container.startShimmerAnimation();*/
 
+        providers = Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build(), new AuthUI.IdpConfig.FacebookBuilder().build(), new AuthUI.IdpConfig.GoogleBuilder().build());
 
 
         //Making database object...
 
             if(isNetworkConnected()) {
                 Toast.makeText(this, "Welcomes U!", Toast.LENGTH_SHORT).show();
-                Log.i(TAG, "hello Im working!");
 
                     //Firebase OAuth starts here...
                     mAuth = FirebaseAuth.getInstance();
+                Log.i(TAG, "hello Im working!");
 
-                if (mAuth.getUid() != null) {
+                if (mAuth.getCurrentUser() != null) {
                     Bitmap bitmap;
                     InputStream is = null;
                     BufferedInputStream bis = null;
@@ -165,16 +170,6 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
-
-                final List<AuthUI.IdpConfig> providers = Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build(), new AuthUI.IdpConfig.FacebookBuilder().build(), new AuthUI.IdpConfig.GoogleBuilder().build());
-
-                // Create and launch sign-in intent
-                startActivityForResult(
-                        AuthUI.getInstance()
-                                .createSignInIntentBuilder()
-                                .setAvailableProviders(providers)
-                                .build(),
-                        RC_SIGN_IN);
 
                 //Firstly Iam creating an Instance of database this is the User's Id.
 
@@ -252,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 .createSignInIntentBuilder()
                                                                 .setAvailableProviders(providers)
                                                                 .build());
+                                                Log.i(TAG, "Logout");
                                             }
                                         });
                                 break;
@@ -316,13 +312,12 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         //Check if user is signed in and update UI accordingly.
-        if(mAuth.getUid() != null) {
+        if(mAuth.getCurrentUser() != null) {
             firebaseUser = mAuth.getCurrentUser();
 
             mFirebaseDatabase = FirebaseDatabase.getInstance();
-            if (firebaseUser.getUid() != null) {
+            if (firebaseUser != null) {
                 Log.i(TAG, "oncreate4:" + firebaseUser.getUid());
-                mDatabaseReference = mFirebaseDatabase.getReference("" + firebaseUser.getUid());
             }
             updateUI(firebaseUser);
         }
@@ -331,21 +326,30 @@ public class MainActivity extends AppCompatActivity {
     //Below method updates UI by the valid user login
     public void updateUI(FirebaseUser currentUser){
 
-        if(currentUser.getUid() != null) {
+        if(currentUser != null) {
             userName = findViewById(R.id.name_id);
             emailID = findViewById(R.id.email_id);
             userProfile = findViewById(R.id.user_profile);
 
             userName.setText(currentUser.getDisplayName());
             emailID.setText(currentUser.getEmail());
-           Log.i(TAG, "UpdateUI:" + currentUser.getUid());
+
+            if(currentUser.getPhotoUrl() != null)
+                Glide.with(this).load(currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "")
+                        .into(userProfile);
+
+            Log.w(TAG, "UpdateUI:" + currentUser.getUid()+ " " + currentUser.getEmail());
             //userProfile.setImageDrawable(Drawable.createFromPath(currentUser.getPhotoUrl().toString()));
         }
         else {
-            Log.i(TAG, "Cannot update UI");
+            Log.w(TAG, "Cannot update UI");
+            userName.setText(R.string.guest_user);
+            emailID.setText("");
         }
 
-    }
+           Log.i(TAG, "UpdateUI:" + currentUser.getUid());
+            //userProfile.setImageDrawable(Drawable.createFromPath(currentUser.getPhotoUrl().toString()));
+        }
 
     public void createAccount(String email, String password){
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -385,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void getCurrentUser() {
 
-        if(mAuth.getUid() != null) {
+        if(mAuth.getCurrentUser() != null) {
         FirebaseUser user = mAuth.getCurrentUser();
 
             String name = user.getDisplayName();
@@ -564,5 +568,27 @@ public class MainActivity extends AppCompatActivity {
         Resources res = context.getResources();
         Bitmap largeIcon = BitmapFactory.decodeResource(res, R.mipmap.ic_launcher_bag);
         return largeIcon;
+    }
+
+    private boolean mayRequestContacts() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
+           /* Snackbar.make(, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(android.R.string.ok, new View.OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
+                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
+                        }
+                    });*/
+        } else {
+            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
+        }
+        return false;
     }
 }

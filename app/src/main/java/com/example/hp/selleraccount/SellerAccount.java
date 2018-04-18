@@ -15,5 +15,6 @@ public class SellerAccount extends AppCompatActivity {
         setContentView(R.layout.activity_seller_account);
         Intent intent = getIntent();
 
+
     }
 }

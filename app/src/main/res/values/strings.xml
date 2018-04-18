@@ -87,7 +87,7 @@
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
+    <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
@@ -111,5 +111,28 @@
     <string name="main_notification_channel_name">main notification channel</string>
     <string name="account_profile_picture">account profile picture</string>
     <string name="edit_button">edit button</string>
+    <string name="mobile">Mobile no.</string>
+    <string name="name_of_person">Name</string>
+    <string name="address">Shop\'s Address</string>
+    <string name="send_verification">We will send a verification code to this mobile number.</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="city">City</string>
+    <string name="state">State</string>
+    <string name="create_account">Create an Account</string>
+    <string name="name_of_shop">Name of shop</string>
+    <string name="log_out">Log Out</string>
+    <string name="address_found">address found</string>
+    <string name="no_location_data_provided">No location data provided</string>
+
+    <string name="no_geocoder_available">No geocoder available</string>
+    <string name="fetch_address">Fetch Address</string>
+    <string name="no_address_found">Sorry, no address found</string>
+    <string name="service_not_available">Sorry, the service is not available</string>
+    <string name="invalid_lat_long_used">Invalid latitude longitude used</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core functionality</string>
+    <string name="settings">Settings</string>
+    <string name="guest_user">Guest User</string>
+    <string name="country">Country</string>
+
 
 </resources>
